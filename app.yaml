@@ -15,22 +15,20 @@
 runtime: nodejs10
 service: default
 # [END runtime]
+# [START runtime]
+runtime: nodejs10
+service: default
+# [END runtime]
 # [START handlers]
 handlers:
   - url: /
     secure: always
     redirect_http_response_code: 301
-    static_files: html/ce/index.html
-    upload:
-      - assets/(.*)
-      - dist/(.*)
-      - html/(.*)
+    static_files: src/html/ce/index.html
+    upload: src/html/ce/index.html
   - url: /(.*)
     secure: always
     redirect_http_response_code: 301
-    static_files: html/ce/index.html
-    upload:
-      - assets/(.*)
-      - dist/(.*)
-      - html/(.*)
+    static_files: src/\1
+    upload: src/(.*)
 # [END handlers]
