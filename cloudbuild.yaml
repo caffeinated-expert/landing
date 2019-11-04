@@ -48,9 +48,3 @@ secrets:
         CiQA34rKrxMT7csSL3vs+PL4xbHrC0fcGlxMtfS83P3gLLnw+dUSOAALJl2SZ/eCA3IinADcW1Fw
         oOY2IZQZgjwc6yKr4z+SaHc12BNXXG7qcoUAN4NegYQG5AOTIXPT
 
-#  echo -n $MY_SECRET | gcloud kms encrypt \
-#  --plaintext-file=- \  # - reads from stdin
-#  --ciphertext-file=- \  # - writes to stdout
-#  --location=global \
-#  --keyring=[KEYRING-NAME] \
-#  --key=[KEY-NAME] | base64
