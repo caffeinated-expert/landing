@@ -1,0 +1,56 @@
+steps:
+  - id: setup dependencies
+    name: gcr.io/cloud-builders/go
+    entrypoint: ash
+    args:
+      - -c
+      - |
+        printf "machine gitlab.com\nlogin @casibbald\passwordn %s" $$GITLAB_USER_ACCESS_TOKEN > ~/.netrc &&
+        chmod 600 ~/.netrc
+    waitFor:
+      - '-'
+    secretEnv:
+      - GITLAB_USER_ACCESS_TOKEN
+
+  - id: deploy dev
+    name: gcr.io/cloud-builders/gcloud
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        echo "Check if "${BRANCH_NAME}" is valid for dev deployment"
+        [[  "${BRANCH_NAME}" != "master" ]] || { echo "Skipping Dev deployment"; exit 0; };
+        gcloud functions deploy scm-listener-dev --project=phrasal-hallway-248612 \
+        --set-env-vars=STAGE=dev --set-env-vars=GITLAB_WEBHOOK_TOKEN=$$GITLAB_WEBHOOK_TOKEN --region=europe-west2 --entry-point=HelloWorld --runtime=go111 --trigger-http --verbosity=debug
+    secretEnv:
+      - GITLAB_WEBHOOK_TOKEN
+
+  - id: deploy prod
+    name: gcr.io/cloud-builders/gcloud
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        echo "Check if "${BRANCH_NAME}" is valid for prod deployment"
+        [[  "${BRANCH_NAME}" == "master" ]] || { echo "Skipping Prod deployment"; exit 0; };
+        gcloud functions deploy scm-listener --project=phrasal-hallway-248612 \
+        --set-env-vars=STAGE=prod --set-env-vars=GITLAB_WEBHOOK_TOKEN=$$GITLAB_WEBHOOK_TOKEN --region=europe-west2 --entry-point=HelloWorld --runtime=go111 --trigger-http --verbosity=debug
+    secretEnv:
+      - GITLAB_WEBHOOK_TOKEN
+
+secrets:
+  - kmsKeyName: projects/brochure-254300/locations/europe/keyRings/ceapp_keyring/cryptoKeys/ceapp_key
+    secretEnv:
+      GITLAB_USER_ACCESS_TOKEN: |
+        CiQA34rKryEF9tNBGk5K/CVPi+RgDJMLXqUWgKGq+5/L0OhrjB4SPgALJl2S4Z2+MvW6c2DFFvvV
+        41Imsigv1NOJVbs2hC3VCPAnEvjEs87EpR+6Fjj9+UhYItyro+R49cPkW50u
+      GITLAB_WEBHOOK_TOKEN: |
+        CiQA34rKrxMT7csSL3vs+PL4xbHrC0fcGlxMtfS83P3gLLnw+dUSOAALJl2SZ/eCA3IinADcW1Fw
+        oOY2IZQZgjwc6yKr4z+SaHc12BNXXG7qcoUAN4NegYQG5AOTIXPT
+
+#  echo -n $MY_SECRET | gcloud kms encrypt \
+#  --plaintext-file=- \  # - reads from stdin
+#  --ciphertext-file=- \  # - writes to stdout
+#  --location=global \
+#  --keyring=[KEYRING-NAME] \
+#  --key=[KEY-NAME] | base64
