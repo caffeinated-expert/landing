@@ -1,0 +1,6 @@
+# Dispatch
+# ========
+---
+dispatch:
+  - url: 'caffeinated.expert/*'
+    service: default
